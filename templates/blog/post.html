@@ -4,6 +4,11 @@
 
                 <h1>{{ post.title }}</h1>
 
+{% if request.user == post.user %}
+
+<a href="{% url 'delete_post' post.slug %}" class="btn btn-danger">Delete</a>
+
+{% endif %}
                 <p class="lead">
                     by <a href="#">{{ post.user }}</a>
                 </p>

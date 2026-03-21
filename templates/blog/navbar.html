@@ -24,9 +24,16 @@
                     <li>
                         <a href="{% url 'contacts' %}">Contact</a>
                     </li>
+                    {% if user.is_authenticated %}
+                    <li>
+                        <a href="{% url 'create_post' %}">Create post</a>
+                    </li>
+                    {% endif %}
                 </ul>
+                {% include 'components/toggle_login.html' %}
             </div>
             <!-- /.navbar-collapse -->
+
         </div>
         <!-- /.container -->
     </nav>
