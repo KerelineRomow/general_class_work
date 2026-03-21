@@ -24,12 +24,24 @@
                     <li>
                         <a href="{% url 'contacts' %}">Contact</a>
                     </li>
+
+                    {% if not user.is_authenticated %}
+                    <li>
+                        <a href="{% url 'register' %}">Register</a>
+                    </li>
+                    {% endif %}
+
                     {% if user.is_authenticated %}
+                    <li>
+                        <a href="{% url 'profile' %}">My Profile ({{ user.username }})</a>
+                    </li>
                     <li>
                         <a href="{% url 'create_post' %}">Create post</a>
                     </li>
-                    {% endif %}
+                {% endif %}
+
                 </ul>
+
                 {% include 'components/toggle_login.html' %}
             </div>
             <!-- /.navbar-collapse -->

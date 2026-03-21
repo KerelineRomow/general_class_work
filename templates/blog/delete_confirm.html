@@ -1,0 +1,11 @@
+{% extends "layout/main_layout.html" %}
+{% block 'content' %}
+
+<h2> Delate post? </h2>
+{{ post.title }}
+<form method="POST">
+    {% csrf_token %}
+    <button type="submit" class="btn btn-danger">Submit</button>
+</form>
+
+{% endblock %}

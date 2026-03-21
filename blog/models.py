@@ -1,7 +1,8 @@
 from django.contrib.auth.models import User
 from django.db import models
 from django.utils.text import slugify
-
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 
 class Category(models.Model):
     name = models.CharField(max_length=30, verbose_name="Назва")
@@ -12,14 +13,12 @@ class Category(models.Model):
             self.slug = slugify(self.name)
         super().save(*args, **kwargs)
 
-
     def __str__(self):
         return self.name
 
     class Meta:
         verbose_name = "Категория"
         verbose_name_plural = "Категории"
-
 
 class Tag(models.Model):
     name = models.CharField(max_length=30, unique=True, verbose_name="Тег")
@@ -30,7 +29,6 @@ class Tag(models.Model):
             self.slug = slugify(self.name)
         super().save(*args, **kwargs)
 
-
     def __str__(self):
         return self.name
 
@@ -38,20 +36,15 @@ class Tag(models.Model):
         verbose_name = "Тег"
         verbose_name_plural = "Теги"
 
-
-
-
-
 class Post(models.Model):
-    title = models.CharField(max_length=30, verbose_name= "Заголовок")
-    content = models.TextField(verbose_name= "Опис")
-    published_date = models.DateTimeField(auto_created=True, verbose_name= "Дата публикации")
-    category = models.ForeignKey(Category, on_delete=models.CASCADE, verbose_name= "Категория")
-    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name= "Автор")
-    image = (models.URLField
-             (default="https://marketplace.canva.com/EAGtrPC4Xiw/1/0/1600w/canva-black-and-white-artistic-woman-portrait-instagram-profile-picture-dUziP3tUikw.jpg"))
+    title = models.CharField(max_length=30, verbose_name="Заголовок")
+    content = models.TextField(verbose_name="Опис")
+    published_date = models.DateTimeField(auto_created=True, verbose_name="Дата публикации")
+    category = models.ForeignKey(Category, on_delete=models.CASCADE, verbose_name="Категория")
+    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="Автор")
+    image = models.URLField(default="https://marketplace.canva.com/EAGtrPC4Xiw/1/0/1600w/canva-black-and-white-artistic-woman-portrait-instagram-profile-picture-dUziP3tUikw.jpg")
     slug = models.SlugField(max_length=220, unique=True, db_index=True)
-    tags = models.ManyToManyField(Tag,blank=True, related_name="tags", verbose_name="Теги")
+    tags = models.ManyToManyField(Tag, blank=True, related_name="tags", verbose_name="Теги")
 
     def save(self, *args, **kwargs):
         if not self.slug:
@@ -64,7 +57,6 @@ class Post(models.Model):
             self.slug = slug
         super().save(*args, **kwargs)
 
-
     def __str__(self):
         return self.title
 
@@ -72,10 +64,8 @@ class Post(models.Model):
         verbose_name = "Новина"
         verbose_name_plural = "Новини"
 
-
 class Comment(models.Model):
     post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name='comments', verbose_name="Пост")
-
     author = models.CharField(max_length=50, verbose_name="Автор")
     text = models.TextField(verbose_name="Текст коментаря")
     created_date = models.DateTimeField(auto_now_add=True, verbose_name="Дата створення")
@@ -87,3 +77,36 @@ class Comment(models.Model):
         verbose_name = "Коментар"
         verbose_name_plural = "Коментарі"
 
+class Profile(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile', verbose_name="Пользователь")
+    avatar = models.ImageField(upload_to='avatars/', default='avatars/default.png', blank=True, verbose_name="Аватар")
+    phone = models.CharField(max_length=20, blank=True, null=True, verbose_name="Телефон")
+    bio = models.TextField(max_length=500, blank=True, verbose_name="О себе")
+
+    def __str__(self):
+        return f"Профиль: {self.user.username}"
+
+    class Meta:
+        verbose_name = "Профиль"
+        verbose_name_plural = "Профили"
+
+@receiver(post_save, sender=User)
+def create_or_save_user_profile(sender, instance, created, **kwargs):
+    if created:
+        Profile.objects.get_or_create(user=instance)
+    else:
+        if hasattr(instance, 'profile'):
+            instance.profile.save()
+        else:
+            Profile.objects.create(user=instance)
+
+class Subscription(models.Model):
+    email = models.EmailField(unique=True, verbose_name="Email підписника")
+    date_added = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.email
+
+    class Meta:
+        verbose_name = "Підписка"
+        verbose_name_plural = "Підписки"

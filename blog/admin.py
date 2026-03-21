@@ -1,5 +1,6 @@
 from django.contrib import admin
-from .models import Post, Category, Tag, Comment
+from .models import Post, Category, Tag, Comment, Subscription
+
 
 @admin.register(Category)
 class CategoryAdmin(admin.ModelAdmin):
@@ -22,4 +23,8 @@ class CommentAdmin(admin.ModelAdmin):
     list_display = ("author", "post", "created_date")
     list_filter = ("created_date", "post")
 
+
+@admin.register(Subscription)
+class SubscriptionAdmin(admin.ModelAdmin):
+    list_display = ('email', 'date_added')
 

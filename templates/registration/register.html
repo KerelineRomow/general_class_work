@@ -1,0 +1,36 @@
+{% extends 'layout/main_layout.html' %}
+{% load crispy_forms_tags %}
+
+{% block 'content' %}
+<style>
+    .invalid-feedback, .errorlist, .alert-danger {
+        display: block !important;
+        color: #dc3545 !important;
+        font-weight: bold;
+    }
+</style>
+
+<div class="row">
+    <div class="col-lg-8">
+        <h2>Register</h2>
+        <hr>
+
+        <form method="POST">
+            {% csrf_token %}
+
+            {% if form.non_field_errors %}
+                <div class="alert alert-danger">
+                    {% for error in form.non_field_errors %}
+                        {{ error }}
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            {{ form|crispy }}
+
+            <button type="submit" class="btn btn-success" style="margin-top: 10px;">Register</button>
+        </form>
+    </div>
+
+    </div>
+{% endblock %}

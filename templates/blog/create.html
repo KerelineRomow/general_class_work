@@ -1,0 +1,17 @@
+{% extends "layout/main_layout.html" %}
+
+{% load crispy_forms_tags %}
+
+{% block 'content' %}
+
+<h1>Create new post</h1>
+
+<form action="{% url 'create_post' %}" method="POST">
+    {% csrf_token %}
+
+    {{form|crispy}}
+    <button type="submit" value="save" class="btn btn-defaulst">Save </button>
+
+</form>
+
+{% endblock %}

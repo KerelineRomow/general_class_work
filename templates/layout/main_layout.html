@@ -62,6 +62,20 @@
                     </div>
 
                 <div class="well">
+    <h4>Newsletter</h4>
+    <form action="/subscribe/" method="post">
+        {% csrf_token %}
+        <div class="input-group">
+            <input type="email" name="email" class="form-control" placeholder="Email..." required>
+            <span class="input-group-btn">
+                <button class="btn btn-primary" type="submit">OK</button>
+            </span>
+        </div>
+    </form>
+</div>
+
+
+                <div class="well">
                     <h4>Side Widget Well</h4>
                     <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Inventore, perspiciatis adipisci accusamus laudantium odit aliquam repellat tempore quos aspernatur vero.</p>
                 </div>
