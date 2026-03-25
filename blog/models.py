@@ -4,6 +4,7 @@ from django.utils.text import slugify
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
+
 class Category(models.Model):
     name = models.CharField(max_length=30, verbose_name="Назва")
     slug = models.SlugField(max_length=220, db_index=True)
@@ -42,7 +43,11 @@ class Post(models.Model):
     published_date = models.DateTimeField(auto_created=True, verbose_name="Дата публикации")
     category = models.ForeignKey(Category, on_delete=models.CASCADE, verbose_name="Категория")
     user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="Автор")
-    image = models.URLField(default="https://marketplace.canva.com/EAGtrPC4Xiw/1/0/1600w/canva-black-and-white-artistic-woman-portrait-instagram-profile-picture-dUziP3tUikw.jpg")
+    image = models.ImageField(
+        upload_to='posts/',
+        verbose_name="Главное фото",
+        blank=True,
+        null=True)
     slug = models.SlugField(max_length=220, unique=True, db_index=True)
     tags = models.ManyToManyField(Tag, blank=True, related_name="tags", verbose_name="Теги")
 
@@ -110,3 +115,12 @@ class Subscription(models.Model):
     class Meta:
         verbose_name = "Підписка"
         verbose_name_plural = "Підписки"
+
+
+
+class PostImage(models.Model):
+    post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name='images')
+    image = models.ImageField(upload_to='post_images/')
+
+    def __str__(self):
+        return f"Фото для поста: {self.post.title}"

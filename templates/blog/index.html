@@ -1,41 +1,62 @@
 {% extends 'layout/main_layout.html' %}
+{% load thumbnail %}
 
 {% block 'content' %}
 
-                <h1 class="page-header"> Posts </h1>
+    <h1 class="page-header"> Posts </h1>
 
-{% for post in posts %}
-                <!-- First Blog Post -->
-                <h2>
-                    <a href="{% url 'post_detail' slug=post.slug %}">{{ post.title }}</a>
-                </h2>
-                <p><strong>Tags:</strong></p>
-                {% for tag in post.tags.all %}
-<span> # {{ tag.name }}</span>
-{% empty %}
-<span> No Tags</span>
-{% endfor %}
-                <p class="lead">
-                    by <a href="#"> {{ post.user }}</a>
-                </p>
-                <p><span class="glyphicon glyphicon-time"></span> {{ post.published_date }}</p>
-                <hr>
-                <img class="img-responsive" src={{ post.image }} alt="">
-                <hr>
-                <p>{{ post.content|truncatewords:15 }}</p>
-                <a class="btn btn-primary" href="{% url 'post_detail' slug=post.slug %}">Read More
-                    <span class="glyphicon glyphicon-chevron-right"></span></a>
+    {% for post in posts %}
+        <h2>
+            <a href="{% url 'post_detail' slug=post.slug %}">{{ post.title }}</a>
+        </h2>
 
-                <hr>
-{% endfor %}
+        <p>
+            <strong>Tags:</strong>
+            {% for tag in post.tags.all %}
+                <a href="{% url 'tag_filter' slug=tag.slug %}" class="btn btn-xs btn-default" style="margin-right: 2px;">
+                    #{{ tag.name }}
+                </a>
+            {% empty %}
+                <span class="text-muted">No Tags</span>
+            {% endfor %}
+        </p>
 
-                <!-- Pager -->
-                <ul class="pager">
-                    <li class="previous">
-                        <a href="#">&larr; Older</a>
-                    </li>
-                    <li class="next">
-                        <a href="#">Newer &rarr;</a>
-                    </li>
-                </ul>
+        <p class="lead">
+            by <a href="#">{{ post.user }}</a>
+        </p>
+
+        <p><span class="glyphicon glyphicon-time"></span> {{ post.published_date|date:"d.m.Y H:i" }}</p>
+
+        <hr>
+
+        {% if post.image %}
+            <a href="{% url 'post_detail' slug=post.slug %}">
+                {% thumbnail post.image 900x400 crop="center" as im %}
+                    <img class="img-responsive" src="{{ im.url }}" alt="{{ post.title }}" style="border-radius: 4px; width: 100%;">
+
+            </a>
+        {% else %}
+            <img class="img-responsive" src="http://placehold.it/900x400?text=No+Photo" alt="No image" style="width: 100%;">
+        {% endif %}
+
+        <hr>
+
+        <p>{{ post.content|truncatewords:25 }}</p>
+
+        <a class="btn btn-primary" href="{% url 'post_detail' slug=post.slug %}">
+            Read More <span class="glyphicon glyphicon-chevron-right"></span>
+        </a>
+
+        <hr>
+    {% endfor %}
+
+    <ul class="pager">
+        <li class="previous">
+            <a href="#">&larr; Older</a>
+        </li>
+        <li class="next">
+            <a href="#">Newer &rarr;</a>
+        </li>
+    </ul>
+
 {% endblock %}

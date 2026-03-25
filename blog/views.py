@@ -5,7 +5,7 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.utils.timezone import now
 from django.contrib import messages
 from .forms import PostForm, LoginForm, UserRegisterForm, UserUpdateForm, ProfileUpdateForm, CommentForm
-from .models import Post, Category, Tag, Profile, Subscription
+from .models import Post, Category, Tag, Profile, Subscription, PostImage
 
 
 def get_categories():
@@ -97,13 +97,18 @@ def search(request):
 @login_required
 def create_post(request):
     if request.method == "POST":
-        form = PostForm(request.POST)
+        form = PostForm(request.POST, request.FILES)
         if form.is_valid():
             new_post = form.save(commit=False)
             new_post.published_date = now()
             new_post.user = request.user
             new_post.save()
             form.save_m2m()
+            images = request.FILES.getlist('images')
+            for img in images:
+                PostImage.objects.create(post=new_post, image=img)
+
+            messages.success(request, "Post and images uploaded successfully!")
             return redirect('home')
     else:
         form = PostForm()
@@ -193,3 +198,4 @@ def subscribe(request):
             Subscription.objects.get_or_create(email=email)
             messages.success(request, "Дякуємо!")
     return redirect(request.META.get('HTTP_REFERER', 'home'))
+
