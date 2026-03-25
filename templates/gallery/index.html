@@ -1,0 +1,27 @@
+{% extends 'layout/main_layout.html' %}
+
+{% block 'content' %}
+{% load thumbnail %}
+
+<h1>Gallery</h1>
+
+<p><a class="btn btn-primary" href="{% url 'upload' %}">Download</a></p>
+
+{% for image in images %}
+
+    <h2> {{ image.title }} </h2>
+
+    {% thumbnail image.image '200x200' crop='center' as m %}
+        <a target="_blank" href="{{image.image.url}}">
+             <img src="{{ m.url }}">
+        </a>
+
+
+{% empty %}
+
+    <p>You have no images!</p>
+
+{% endfor %}
+
+{% endblock %}
+
