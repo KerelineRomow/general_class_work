@@ -6,33 +6,38 @@ from django.utils.timezone import now
 from django.contrib import messages
 from .forms import PostForm, LoginForm, UserRegisterForm, UserUpdateForm, ProfileUpdateForm, CommentForm
 from .models import Post, Category, Tag, Profile, Subscription, PostImage
+from shop.models import Category as ShopCategory
 
 
-def get_categories():
+def get_categories(request):
     all_cats = Category.objects.all()
     count = all_cats.count()
     half = count // 2 + count % 2
-    first_half = all_cats[:half]
-    second_half = all_cats[half:]
-    return {'cat_left': first_half, 'cat_right': second_half}
+
+    shop_cats = ShopCategory.objects.all()
+
+    return {
+        'cat_left': all_cats[:half],
+        'cat_right': all_cats[half:],
+        'categories': shop_cats
+    }
 
 
 def get_tags():
     return {'all_tags': Tag.objects.all()}
 
 
-
 def index(request):
     posts = Post.objects.all().order_by("-published_date")
     context = {'posts': posts}
-    context.update(get_categories())
+    context.update(get_categories(request))
     context.update(get_tags())
     return render(request, 'blog/index.html', context)
 
 
 def contact(request):
     context = {}
-    context.update(get_categories())
+    context.update(get_categories(request))
     context.update(get_tags())
     return render(request, 'blog/contact.html', context)
 
@@ -40,29 +45,21 @@ def contact(request):
 def post_detail(request, slug=None):
     post = get_object_or_404(Post, slug=slug)
     comments = post.comments.all().order_by('-created_date')
-
     if request.method == "POST":
-        # Если не залогинен — отправляем на логин
         if not request.user.is_authenticated:
             return redirect('login')
-
         form = CommentForm(request.POST)
         if form.is_valid():
             comment = form.save(commit=False)
             comment.post = post
-            comment.author = request.user.username  # Автор — текущий юзер
+            comment.author = request.user.username
             comment.save()
             messages.success(request, "Коментар додано!")
             return redirect('post_detail', slug=post.slug)
     else:
         form = CommentForm()
-
-    context = {
-        'post': post,
-        'comments': comments,
-        'form': form
-    }
-    context.update(get_categories())
+    context = {'post': post, 'comments': comments, 'form': form}
+    context.update(get_categories(request))
     context.update(get_tags())
     return render(request, 'blog/post.html', context)
 
@@ -71,7 +68,7 @@ def category(request, slug=None):
     c = get_object_or_404(Category, slug=slug)
     posts = Post.objects.filter(category=c).order_by("-published_date")
     context = {'posts': posts}
-    context.update(get_categories())
+    context.update(get_categories(request))
     context.update(get_tags())
     return render(request, 'blog/index.html', context)
 
@@ -80,7 +77,7 @@ def tag_detail(request, slug=None):
     t = get_object_or_404(Tag, slug=slug)
     posts = Post.objects.filter(tags=t).order_by("-published_date")
     context = {'posts': posts, 'current_tag': t}
-    context.update(get_categories())
+    context.update(get_categories(request))
     context.update(get_tags())
     return render(request, 'blog/index.html', context)
 
@@ -89,7 +86,7 @@ def search(request):
     query = request.GET.get("query", "")
     posts = Post.objects.filter(Q(content__icontains=query) | Q(title__icontains=query)).order_by("-published_date")
     context = {'posts': posts}
-    context.update(get_categories())
+    context.update(get_categories(request))
     context.update(get_tags())
     return render(request, 'blog/index.html', context)
 
@@ -107,13 +104,11 @@ def create_post(request):
             images = request.FILES.getlist('images')
             for img in images:
                 PostImage.objects.create(post=new_post, image=img)
-
             messages.success(request, "Post and images uploaded successfully!")
             return redirect('home')
     else:
         form = PostForm()
-
-    context = {'form': form} | get_categories() | get_tags()
+    context = {'form': form} | get_categories(request) | get_tags()
     return render(request, 'blog/create.html', context)
 
 
@@ -131,8 +126,7 @@ def user_login(request):
                 form.add_error(None, "Invalid username or password")
     else:
         form = LoginForm()
-
-    context = {'form': form} | get_categories() | get_tags()
+    context = {'form': form} | get_categories(request) | get_tags()
     return render(request, 'registration/login.html', context)
 
 
@@ -166,7 +160,7 @@ def register(request):
 def profile(request):
     user_profile, created = Profile.objects.get_or_create(user=request.user)
     context = {'user': request.user}
-    context.update(get_categories())
+    context.update(get_categories(request))
     context.update(get_tags())
     return render(request, 'registration/profile.html', context)
 
@@ -184,9 +178,8 @@ def profile_edit(request):
     else:
         u_form = UserUpdateForm(instance=request.user)
         p_form = ProfileUpdateForm(instance=user_profile)
-
     context = {'u_form': u_form, 'p_form': p_form}
-    context.update(get_categories())
+    context.update(get_categories(request))
     context.update(get_tags())
     return render(request, 'registration/profile_edit.html', context)
 
@@ -198,4 +191,3 @@ def subscribe(request):
             Subscription.objects.get_or_create(email=email)
             messages.success(request, "Дякуємо!")
     return redirect(request.META.get('HTTP_REFERER', 'home'))
-
